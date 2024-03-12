@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/login.css') }}"/>
+<div class="1" id="1">
+    <img src="{{ url_for('static', filename='images/MARS-2-7.png') }}">
+    <h2>Аварийный доступ</h2>
+</div>
+<form action="" method="post" novalidate>
+    <div>
+        {{form.csrf_token}}
+    </div>
+    {% for field in form if field.name != 'csrf_token' %}
+    <div>
+        {{ field.label() }}
+        {{ field() }}
+        {% for error in field.errors %}
+        <div class="error">{{ error }}</div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</form>
+{% endblock %}
