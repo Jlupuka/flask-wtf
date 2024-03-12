@@ -74,5 +74,17 @@ def distribution() -> str:
                            distributions=FlaskData.distribution.value)
 
 
+@app.route('/table/<gender>/<int:age>', methods=['GET'])
+def table(gender: str, age: int) -> str:
+    if gender == 'male':
+        wall_color = 'blue'
+    elif gender == 'female':
+        wall_color = 'pink'
+    else:
+        return 'Invalid gender'
+    marsian_image = 'marsOld.png' if age > 21 else 'marsYang.png'
+    return render_template('table.html', wall_color=wall_color, marsian_image=marsian_image)
+
+
 if __name__ == '__main__':
     app.run(port=8080, host='127.0.0.1')

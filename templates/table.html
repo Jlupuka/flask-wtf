@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/h.css') }}"/>
+<h4 class="data" id="data">Оформление каюты</h4>
+<table>
+    <tr class="column">
+        <th>Цвет стен</th>
+        <th>Изображение марсианина</th>
+    </tr>
+    <tr>
+        <td style="background-color: {{ wall_color }};width: 400px;height: 400px;overflow: hidden;"></td>
+        <td><img src="{{ url_for('static', filename='images/' + marsian_image) }}" alt="Marsian"></td>
+    </tr>
+</table>
+{% endblock %}
