@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/p.css') }}"/>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/h.css') }}"/>
+<h4 class="data" id="data">Размещение по каютам</h4>
+{% for name in distributions %}
+<p>{{ name }} - Каюта № {{ loop.index }} {% if loop.first %} - капитан корабля {% endif %}</p>
+{% endfor %}
+{% endblock %}
