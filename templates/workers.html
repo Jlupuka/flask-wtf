@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+    {% if typeList in ['ul', 'ol'] %}
+        <h2>Список профессий</h2>
+        <{{ typeList }}>
+        {% for profession in  professionList %}
+            <li>{{ profession }}</li>
+        {% endfor %}
+        <{{"/" + typeList }}>
+    {% else %}
+        <h2>Неверный формат</h2>
+{% endif %}
+{% endblock %}

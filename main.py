@@ -20,8 +20,35 @@ def training(prof: str) -> str:
     if prof.lower() in {'инженер', 'строитель'}:
         typeMission = 'Инженерные тренажеры'
 
-    return render_template('training.html', prof=prof, imageName=image_dict[typeMission],
+    return render_template(template_name_or_list='training.html', title=typeMission,
+                           prof=prof, imageName=image_dict[typeMission],
                            typeMission=typeMission)
+
+
+@app.route('/list_prof/<typeList>')
+def list_prof(typeList: str) -> str:
+    professionList = {"Инженер по разработке систем жизнеобеспечения",
+                      "Геолог-исследователь",
+                      "Инженер по строительству и инфраструктуре",
+                      "Психолог",
+                      "Aгроном/ботаник",
+                      "Учёный-биолог",
+                      "Химик-исследователь ресурсов",
+                      "Астрофизик",
+                      "Лётчик",
+                      "Инженер-робототехник",
+                      "Архитектор-дизайнер",
+                      "Специалист по энергетическим системам",
+                      "Медицинский специалист",
+                      "Учёный по терраформированию",
+                      "Инженер-космонавигатор",
+                      "Специалист по защите от радиации",
+                      "Специалист по водородному исследованию",
+                      "Инженер-рециклер",
+                      "Лингвист",
+                      "Управляющий колонией"}
+    return render_template(template_name_or_list='workers.html', typeList=typeList,
+                           professionList=professionList)
 
 
 if __name__ == '__main__':
