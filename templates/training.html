@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/image.css') }}" />
+</head>
+<body>
+    <div class="alert alert-dark" role="alert">
+        <h2>Миссия Колонизация Марса</h2>
+    </div>
+    <h4>И на Марсе будут яблони цвести!</h4>
+    <h1>Инженерные тренажеры для {{ prof }}</h1>
+        <div class="image-container">
+        {% if imageName == "med.png" %}
+            <img src="{{ url_for('static', filename='images/med.png') }}" alt="{{ typeMission }}">
+        {% else %}
+            <img src="{{ url_for('static', filename='images/engineer.png') }}" alt="{{ typeMission }}">
+        {% endif %}
+        </div>
+</body>
+</html>
