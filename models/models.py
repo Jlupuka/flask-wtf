@@ -23,3 +23,6 @@ class FlaskData(enum.Enum):
                       "Лингвист",
                       "Управляющий колонией")
     formTitle = 'Анкета астронавта'
+    auto_answer = {'profession': 'Инженер по строительству и инфраструктуре, Лингвист', 'ready': True,
+                   'surname': 'Иванов', 'name': 'Иван',
+                   'education': 'Начальное', 'sex': 'male', 'motivation': 'Всегда мечтал жить на другой планете!'}

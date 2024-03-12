@@ -52,5 +52,10 @@ def answer() -> str:
         return render_template(template_name_or_list='auto_answer.html', **result_dict)
 
 
+@app.route('/auto_answer')
+def auto_answer() -> str:
+    return render_template(template_name_or_list='auto_answer.html', **FlaskData.auto_answer.value)
+
+
 if __name__ == '__main__':
     app.run(port=8080, host='127.0.0.1')
