@@ -1,7 +1,11 @@
+import os
+
 from flask import Flask, render_template, request, redirect
+from werkzeug.utils import secure_filename
 
 from loginform import LoginForm
 from models.models import FlaskData
+from services.service import Service
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -84,6 +88,21 @@ def table(gender: str, age: int) -> str:
         return 'Invalid gender'
     marsian_image = 'marsOld.png' if age > 21 else 'marsYang.png'
     return render_template('table.html', wall_color=wall_color, marsian_image=marsian_image)
+
+
+@app.route('/gallery', methods=['POST', 'GET'])
+def gallery() -> str:
+    if request.method == 'POST':
+        image = request.files['image']
+        if image and allowed_file(image.filename):
+            filename = secure_filename(image.filename)
+            image.save(os.path.join('static/images/mars_image', filename))
+            return render_template('gallery.html', fileNames=Service.get_filenames_mars_img())
+    return render_template('gallery.html', fileNames=Service.get_filenames_mars_img())
+
+
+def allowed_file(filename: str) -> bool:
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ['jpg', 'jpeg', 'png']
 
 
 if __name__ == '__main__':
