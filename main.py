@@ -1,4 +1,5 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+from models.models import FlaskData
 
 app = Flask(__name__)
 
@@ -27,28 +28,28 @@ def training(prof: str) -> str:
 
 @app.route('/list_prof/<typeList>')
 def list_prof(typeList: str) -> str:
-    professionList = {"Инженер по разработке систем жизнеобеспечения",
-                      "Геолог-исследователь",
-                      "Инженер по строительству и инфраструктуре",
-                      "Психолог",
-                      "Aгроном/ботаник",
-                      "Учёный-биолог",
-                      "Химик-исследователь ресурсов",
-                      "Астрофизик",
-                      "Лётчик",
-                      "Инженер-робототехник",
-                      "Архитектор-дизайнер",
-                      "Специалист по энергетическим системам",
-                      "Медицинский специалист",
-                      "Учёный по терраформированию",
-                      "Инженер-космонавигатор",
-                      "Специалист по защите от радиации",
-                      "Специалист по водородному исследованию",
-                      "Инженер-рециклер",
-                      "Лингвист",
-                      "Управляющий колонией"}
     return render_template(template_name_or_list='workers.html', typeList=typeList,
-                           professionList=professionList)
+                           professionList=FlaskData.professionList.value)
+
+
+@app.route('/answer', methods=['POST', 'GET'])
+def answer() -> str:
+    if request.method == 'GET':
+        return render_template(template_name_or_list='answer.html', professionList=FlaskData.professionList.value,
+                               title=FlaskData.formTitle.value)
+    if request.method == 'POST':
+        result_dict = {
+            'profession': [],
+            'ready': False
+        }
+        for key, data in request.values.items():
+            if data == 'on' and key != 'ready':
+                result_dict['profession'].append(key)
+            else:
+                result_dict[key] = data
+        result_dict['profession'] = ', '.join(result_dict['profession'])
+        result_dict['ready'] = True if result_dict['ready'] == 'on' else False
+        return render_template(template_name_or_list='auto_answer.html', **result_dict)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/form.css') }}"/>
+<form class="login_form" method="post">
+    <input type="text" class="form-control" id="surname" placeholder="Введите фамилию"
+           name="surname">
+    <input type="text" class="form-control" id="name" placeholder="Введите имя"
+           name="name">
+    <div class="form-group">
+        <label for="classSelect"><strong>Какое у Вас образование?</strong></label>
+        <select class="form-control" id="classSelect" name="education">
+            <option>Начальное</option>
+            <option>Общее среднее</option>
+            <option>Высшее</option>
+        </select>
+    </div>
+    <label for="professionList"><strong>Какие у Вас есть профессии?</strong></label>
+    <div class="from-group" id="professionList">
+        {% for profession in professionList %}
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="acceptRules{{ loop.index }}"
+                   name="{{ profession }}">
+            <label class="form-check-label" for="acceptRules{{ loop.index }}">{{ profession }}</label>
+        </div>
+        {% endfor %}
+    </div>
+    <label for="sex"><strong>Укажите пол</strong></label>
+    <div class="form-group" id="sex">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="sex" id="male" value="male" checked>
+            <label class="form-check-label" for="male">Мужской</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="sex" id="female" value="female">
+            <label class="form-check-label" for="female">Женский</label>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="about"><strong>Почему Вы хотите принять участие в миссии?</strong></label>
+        <textarea class="form-control" id="about" rows="3" name="motivation"></textarea>
+    </div>
+    <div class="form-group form-check">
+        <input type="checkbox" class="form-check-input" id="acceptRules" name="ready">
+        <label class="form-check-label" for="acceptRules"><i>Готовы остаться на Марсе?</i></label>
+    </div>
+    <button type="submit" class="btn btn-primary">Отправить</button>
+</form>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/table.css') }}"/>
+<h5><strong>Ваши данные из анкеты:</strong></h5>
+<div class="from-group" id="data">
+    <label><i>Фамилия:</i> {{ surname }}</label><br>
+    <label><i>Имя:</i> {{ name }}</label><br>
+    <label><i>Образование:</i> {{ education }}</label><br>
+    <label><i>Профессия(и):</i> {{ profession }}</label><br>
+    <label><i>Пол:</i> {{ sex }}</label><br>
+    <label><i>Мотивация:</i> {{ motivation }}</label><br>
+    <label><i>Готов остаться на Марсе?</i> {{ ready }}</label><br>
+</div>
+{% endblock %}
