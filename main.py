@@ -4,6 +4,8 @@ import os
 from flask import Flask, render_template, request, redirect
 from werkzeug.utils import secure_filename
 
+from data import db_session
+from data.models.models import Jobs
 from loginform import LoginForm
 from models.models import FlaskData
 from services.service import Service
@@ -16,7 +18,8 @@ app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 @app.route('/index')
 def index() -> str:
     title = "Миссия Колонизация Марса"
-    return render_template('base.html', title=title)
+    return render_template('works_log.html', title=title,
+                           jobs_data=session.query(Jobs).all())
 
 
 @app.route('/training/<prof>')
@@ -115,4 +118,6 @@ def allowed_file(filename: str) -> bool:
 
 
 if __name__ == '__main__':
+    db_session.global_init('db/workers.sqlite')
+    session = db_session.create_session()
     app.run(port=8080, host='127.0.0.1')
