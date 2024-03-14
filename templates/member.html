@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/image.css') }}"/>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/member.css') }}"/>
+<div class="form-group">
+    {% set random_data = data|random %}
+    <p>Имя: <strong>{{random_data.name}}</strong></p>
+    <img src={{random_data.img}} class="image-container">
+    <p>Профессия(и): <i>{{random_data.professions}}</i></p>
+</div>
+{% endblock %}

@@ -1,3 +1,4 @@
+import json
 import os
 
 from flask import Flask, render_template, request, redirect
@@ -99,6 +100,14 @@ def gallery() -> str:
             image.save(os.path.join('static/images/mars_image', filename))
             return render_template('gallery.html', fileNames=Service.get_filenames_mars_img())
     return render_template('gallery.html', fileNames=Service.get_filenames_mars_img())
+
+
+@app.route('/member')
+def member() -> str:
+    with open('templates/data.json', encoding='utf-8', mode='r') as file:
+        data = json.load(file)
+    return render_template('member.html', title='Личная карточка',
+                           data=data['data'])
 
 
 def allowed_file(filename: str) -> bool:

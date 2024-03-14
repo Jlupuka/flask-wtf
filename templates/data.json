@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "name": "Шон Бин",
+      "professions": "DataSince",
+      "img": "static/images/marsOld.png"
+    },
+    {
+      "name": "Энди Уир",
+      "professions": "Python Developer, Software Engineer, Инженер по разработке систем жизнеобеспечения",
+      "img": "static/images/marsYang.png"
+    },
+    {
+      "name": "Марк Уотни",
+      "professions": "Учёный по терраформированию, Инженер-космонавигатор, Специалист по защите от радиации, Специалист по водородному исследованию",
+      "img": "static/images/marsOld.png"
+    },
+    {
+      "name": "Тедди Сандерс",
+      "professions": "Лингвист, Управляющий колонией",
+      "img": "static/images/marsYang.png"
+    }
+  ]
+}
