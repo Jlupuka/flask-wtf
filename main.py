@@ -2,12 +2,14 @@ import json
 import os
 
 from flask import Flask, render_template, request, redirect
+from werkzeug import Response
 from werkzeug.utils import secure_filename
 
 from data import db_session
-from data.models.models import Jobs
+from data.models.models import Jobs, User
 from loginform import LoginForm
 from models.models import FlaskData
+from regform import RegisterForm
 from services.service import Service
 
 app = Flask(__name__)
@@ -111,6 +113,31 @@ def member() -> str:
         data = json.load(file)
     return render_template('member.html', title='Личная карточка',
                            data=data['data'])
+
+
+@app.route('/registration', methods=['GET', 'POST'])
+def registration() -> Response | str:
+    form = RegisterForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if db_sess.query(User).filter(User.email == form.email.data).first():
+            return render_template('registration.html', title='Регистрация',
+                                   form=form,
+                                   message="Такой пользователь уже есть")
+        user = User(
+            name=form.name.data,
+            email=form.email.data,
+            surname=form.surname.data,
+            age=form.age.data,
+            position=form.position.data,
+            speciality=form.speciality.data,
+            address=form.address.data,
+        )
+        user.set_password(form.password.data)
+        db_sess.add(user)
+        db_sess.commit()
+        return redirect('/login')
+    return render_template('registration.html', title='Регистрация', form=form)
 
 
 def allowed_file(filename: str) -> bool:

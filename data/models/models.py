@@ -1,6 +1,8 @@
 import datetime
 from typing import Optional
 
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,6 +26,12 @@ class User(SqlAlchemyBase):
 
     def __repr__(self) -> str:
         return f'<Colonist> {self.id} {self.name} {self.surname}'
+
+    def set_password(self, password: str) -> None:
+        self.hashed_password = generate_password_hash(password)
+
+    def check_password(self, password: str) -> str:
+        return check_password_hash(self.hashed_password, password)
 
 
 class Jobs(SqlAlchemyBase):
