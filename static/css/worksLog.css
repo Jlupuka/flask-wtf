@@ -1,0 +1,31 @@
+table.my-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1000px;
+}
+
+table.my-table th,
+table.my-table td {
+    border: 1px solid #cca5a5;
+    padding: 8px;
+    text-align: center;
+}
+
+table.my-table th {
+    background-color: #cca5a5;
+    font-weight: bold;
+}
+
+table.my-table tr:nth-child(even) {
+    background-color: #cca5a5;
+}
+
+table.my-table tr {
+    background-color: #dde8da;
+}
+
+table.my-table td:hover {
+    background-color: #79d1d1;
+}

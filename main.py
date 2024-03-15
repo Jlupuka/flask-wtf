@@ -3,11 +3,12 @@ import json
 import os
 from typing import Type
 
-from flask_login import LoginManager, login_user, login_required, logout_user
-from flask import Flask, render_template, request, redirect, make_response, session
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask import Flask, render_template, request, redirect, make_response, session, abort
 
 from werkzeug import Response
 from werkzeug.utils import secure_filename
+from wtforms.fields import SubmitField
 
 from data import db_session
 from data.models.models import Jobs, User
@@ -37,8 +38,10 @@ def load_user(user_id: int) -> Type[User]:
 @app.route('/index')
 def index() -> str:
     title = "Миссия Колонизация Марса"
-    return render_template('works_log.html', title=title,
-                           jobs_data=session_db.query(Jobs).all())
+    if login_user:
+        return render_template('works_log.html', title=title,
+                               jobs_data=session_db.query(Jobs).all())
+    return render_template('base.html', title=title)
 
 
 @app.route('/logout')
@@ -174,6 +177,7 @@ def registration() -> Response | str:
 
 
 @app.route("/addjob", methods=['GET', 'POST'])
+@login_required
 def add_job() -> str | Response:
     form = JobForm()
     if form.validate_on_submit():
@@ -193,10 +197,65 @@ def add_job() -> str | Response:
         job.work_size = form.work_size.data
         job.collaborators = form.collaborators.data
         job.is_finished = form.is_job_finished.data
-        db_sess.add(job)
+        current_user.job.append(job)
+        db_sess.merge(current_user)
         db_sess.commit()
         return redirect('/')
     return render_template('add_job.html', title='Добавление работы', form=form)
+
+
+@app.route('/job/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update_job(id: int) -> str | Response:
+    form = JobForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id,
+                                                     Jobs.team_leader == current_user.id
+                                                     ).first()
+        if job:
+            form.teamleader.data = job.team_leader
+            form.job.data = job.job
+            form.work_size.data = job.work_size
+            form.is_job_finished.data = job.is_finished
+            form.collaborators.data = job.collaborators
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if not db_sess.query(User).filter(User.id == form.teamleader.data).first():
+            return render_template('add_job.html', title='Обновление работы',
+                                   form=form,
+                                   message=f"Team Leader'а с такими ID ({form.teamleader.data}) - нет")
+        job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id,
+                                                     Jobs.team_leader == current_user.id
+                                                     ).first()
+        if job:
+            job.job = form.job.data
+            job.team_leader = form.teamleader.data
+            job.work_size = form.work_size.data
+            job.collaborators = form.collaborators.data
+            job.is_finished = form.is_job_finished.data
+            db_sess.commit()
+            return redirect('/')
+        else:
+            abort(404)
+    return render_template('add_job.html', title='Обновление работы', form=form)
+
+
+@app.route('/job_delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def job_delete(id: int) -> Response:
+    db_sess = db_session.create_session()
+    job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id,
+                                                 Jobs.team_leader == current_user.id
+                                                 ).first()
+    if job:
+        db_sess.delete(job)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/')
 
 
 @app.route("/cookie_test")

@@ -1,29 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
 <h2 align="center">Works log</h2>
-{% set columns = ['Название работы', 'фамилия и имя ответственного',
-'продолжительность в часах', 'список id команды', 'завершена или нет'] %}
-
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/worksLog.css') }}"/>
+{% set columns = ['Название работы', 'Фамилия и имя ответственного',
+'Дедлайн', 'Список ID команды', 'Выполнена'] %}
+<div style="margin-left: 430px">
+    <a href="/addjob" class="btn btn-primary">Добавить</a>
+</div>
 {% for job in jobs_data %}
-<caption>Action #{{loop.index}}</caption>
-<table class="table table-bordered">
+<p align="center">| <i>Action #{{loop.index}} </i>|</p>
+<table class="table table-bordered my-table">
     <thead>
-        <tr>
-            {% for column in columns %}
-                <th>{{column}}</th>
-            {% endfor %}
-        </tr>
+    <tr>
+        {% for column in columns %}
+        <th>{{column}}</th>
+        {% endfor %}
+    </tr>
     </thead>
     <tbody>
-        <tr>
-            <td>{{job.job}}</td>
-            <td>{{job.user.surname}} {{job.user.name}}</td>
-            <td>{{job.work_size}}</td>
-            <td>{{job.collaborators}}</td>
-            <td>{% if job.is_finished %} is finished {% else %} is not finished {% endif %}</td>
-        </tr>
+    <tr>
+        <td>{{job.job}}</td>
+        <td>{{job.user.surname}} {{job.user.name}}</td>
+        <td>{{job.work_size}}</td>
+        <td>{{job.collaborators}}</td>
+        <td>{% if job.is_finished %} is finished {% else %} is not finished {% endif %}</td>
+    </tr>
     </tbody>
 </table>
+{% if (current_user.is_authenticated and current_user == job.user) or current_user.id == 1 %}
+<div style="margin-left: 430px">
+    <a href="/job/{{ job.id }}" class="btn btn-warning">
+        Изменить
+    </a>
+    <a href="/job_delete/{{ job.id }}" class="btn btn-danger">
+        Удалить
+    </a>
+</div>
+{% endif %}
 {% endfor %}
 
 {% endblock %}
