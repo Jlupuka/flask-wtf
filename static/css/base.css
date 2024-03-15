@@ -1,0 +1,14 @@
+.navbar-brand {
+    display: inline-block;
+    padding: 5px 60px;
+    border-radius: 30px;
+    background-color: rgba(175, 157, 207, 0.5);
+    margin-left: 10px
+}
+.navbar-brand a {
+    color: #007bff;
+    text-decoration: none;
+}
+.navbar-brand a:hover {
+    color: #0056b3;
+}

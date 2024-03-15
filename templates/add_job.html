@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/regLogForm.css') }}"/>
+    <h1 align="center">{{title}}</h1>
+    <form action="" method="post" class="login-form">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.teamleader.label }}<br>
+            {{ form.teamleader(class="form-control") }}<br>
+            {% for error in form.teamleader.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.job.label }}<br>
+            {{ form.job(class="form-control") }}<br>
+            {% for job in form.job.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.work_size.label }}<br>
+            {{ form.work_size(class="form-control") }}<br>
+            {% for job in form.work_size.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.collaborators.label }}<br>
+            {{ form.collaborators(class="form-control") }}<br>
+            {% for job in form.collaborators.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>{{ form.is_job_finished() }} {{ form.is_job_finished.label }}</p>
+        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        <div>{{ message }}</div>
+    </form>
+{% endblock %}

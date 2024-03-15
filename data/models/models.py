@@ -1,6 +1,7 @@
 import datetime
 from typing import Optional
 
+from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from sqlalchemy import ForeignKey
@@ -9,7 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from data.db_session import SqlAlchemyBase
 
 
-class User(SqlAlchemyBase):
+class User(SqlAlchemyBase, UserMixin):
     __tablename__ = 'users'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -28,9 +29,9 @@ class User(SqlAlchemyBase):
         return f'<Colonist> {self.id} {self.name} {self.surname}'
 
     def set_password(self, password: str) -> None:
-        self.hashed_password = generate_password_hash(password)
+        self.hashed_password: str = generate_password_hash(password)
 
-    def check_password(self, password: str) -> str:
+    def check_password(self, password: str) -> bool:
         return check_password_hash(self.hashed_password, password)
 
 

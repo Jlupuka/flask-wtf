@@ -1,19 +1,36 @@
+import datetime
 import json
 import os
+from typing import Type
 
-from flask import Flask, render_template, request, redirect
+from flask_login import LoginManager, login_user, login_required, logout_user
+from flask import Flask, render_template, request, redirect, make_response, session
+
 from werkzeug import Response
 from werkzeug.utils import secure_filename
 
 from data import db_session
 from data.models.models import Jobs, User
-from loginform import LoginForm
+from forms.jobForm import JobForm
+from forms.loginform import LoginForm
 from models.models import FlaskData
-from regform import RegisterForm
+from forms.regform import RegisterForm
 from services.service import Service
 
 app = Flask(__name__)
+login_manager = LoginManager()
+login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
+    days=365
+)
+
+
+@login_manager.user_loader
+def load_user(user_id: int) -> Type[User]:
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id == user_id).one()
+    return user
 
 
 @app.route('/')
@@ -21,7 +38,14 @@ app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 def index() -> str:
     title = "Миссия Колонизация Марса"
     return render_template('works_log.html', title=title,
-                           jobs_data=session.query(Jobs).all())
+                           jobs_data=session_db.query(Jobs).all())
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect("/")
 
 
 @app.route('/training/<prof>')
@@ -74,8 +98,18 @@ def auto_answer() -> str:
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        return redirect('/index')
-    return render_template(template_name_or_list='login.html', title='Авторизация', form=form)
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember_me.data)
+            return redirect("/")
+        return render_template('login.html',
+                               message="Неправильный логин или пароль",
+                               form=form)
+    if request.method == 'POST':
+        return render_template('login.html', title='Авторизация', form=form,
+                               message='Некорректно введены поля авторизации')
+    return render_template('login.html', title='Авторизация', form=form)
 
 
 @app.route('/distribution')
@@ -124,20 +158,69 @@ def registration() -> Response | str:
             return render_template('registration.html', title='Регистрация',
                                    form=form,
                                    message="Такой пользователь уже есть")
-        user = User(
-            name=form.name.data,
-            email=form.email.data,
-            surname=form.surname.data,
-            age=form.age.data,
-            position=form.position.data,
-            speciality=form.speciality.data,
-            address=form.address.data,
-        )
+        user = User()
+        user.name = form.name.data
+        user.email = form.email.data
+        user.surname = form.surname.data
+        user.age = form.age.data
+        user.position = form.position.data
+        user.speciality = form.speciality.data
+        user.address = form.address.data
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
         return redirect('/login')
     return render_template('registration.html', title='Регистрация', form=form)
+
+
+@app.route("/addjob", methods=['GET', 'POST'])
+def add_job() -> str | Response:
+    form = JobForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if db_sess.query(Jobs).filter(Jobs.job == form.job.data).first():
+            return render_template('add_job.html', title='Добавление работы',
+                                   form=form,
+                                   message="Такие данные уже есть")
+        if not db_sess.query(User).filter(User.id == form.teamleader.data).first():
+            return render_template('add_job.html', title='Добавление работы',
+                                   form=form,
+                                   message=f"Team Leader'а с такими ID ({form.teamleader.data}) - нет")
+
+        job = Jobs()
+        job.job = form.job.data
+        job.team_leader = form.teamleader.data
+        job.work_size = form.work_size.data
+        job.collaborators = form.collaborators.data
+        job.is_finished = form.is_job_finished.data
+        db_sess.add(job)
+        db_sess.commit()
+        return redirect('/')
+    return render_template('add_job.html', title='Добавление работы', form=form)
+
+
+@app.route("/cookie_test")
+def cookie_test():
+    visits_count = int(request.cookies.get("visits_count", 0))
+    if visits_count:
+        res = make_response(
+            f"Вы пришли на эту страницу {visits_count + 1} раз")
+        res.set_cookie("visits_count", str(visits_count + 1),
+                       max_age=60 * 60 * 24 * 365 * 2)
+    else:
+        res = make_response(
+            "Вы пришли на эту страницу в первый раз за последние 2 года")
+        res.set_cookie("visits_count", '1',
+                       max_age=60 * 60 * 24 * 365 * 2)
+    return res
+
+
+@app.route("/session_test")
+def session_test():
+    visits_count = session.get('visits_count', 0)
+    session['visits_count'] = visits_count + 1
+    return make_response(
+        f"Вы пришли на эту страницу {visits_count + 1} раз")
 
 
 def allowed_file(filename: str) -> bool:
@@ -146,5 +229,5 @@ def allowed_file(filename: str) -> bool:
 
 if __name__ == '__main__':
     db_session.global_init('db/workers.sqlite')
-    session = db_session.create_session()
+    session_db = db_session.create_session()
     app.run(port=8080, host='127.0.0.1')
