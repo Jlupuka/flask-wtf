@@ -24,6 +24,7 @@ class User(SqlAlchemyBase, UserMixin):
     hashed_password: Mapped[Optional[str]]
     modified_date: Mapped[Optional[datetime.datetime]]
     jobs: Mapped['Jobs'] = relationship(back_populates='user')
+    department: Mapped['Department'] = relationship(back_populates='user')
 
     def __repr__(self) -> str:
         return f'<Colonist> {self.id} {self.name} {self.surname}'
@@ -47,3 +48,14 @@ class Jobs(SqlAlchemyBase):
     end_date: Mapped[Optional[datetime.datetime]]
     is_finished: Mapped[Optional[bool]]
     user: Mapped['User'] = relationship(back_populates='jobs')
+
+
+class Department(SqlAlchemyBase):
+    __tablename__ = 'departments'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    title: Mapped[Optional[str]]
+    chief: Mapped[Optional[int]] = mapped_column(ForeignKey('users.id'))
+    members: Mapped[Optional[str]]
+    email: Mapped[Optional[str]]
+    user: Mapped['User'] = relationship(back_populates='department')

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 align="center">Works log</h2>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/worksLog.css') }}"/>
+{% set columns = ['Название департамента', 'Фамилия и имя ответственного',
+'Список ID команды', 'Email'] %}
+<div style="margin-left: 430px">
+    <a href="/" class="btn btn-danger"><strong>Back job</strong></a>
+    <a href="/add_department" class="btn btn-primary">Add department</a>
+</div>
+{% for department in department_data %}
+<p align="center">| <i>Action #{{loop.index}} </i>|</p>
+<table class="table table-bordered my-table">
+    <thead>
+    <tr>
+        {% for column in columns %}
+        <th>{{column}}</th>
+        {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>{{department.title}}</td>
+        <td>{{department.user.surname}} {{department.user.name}}</td>
+        <td>{{department.members}}</td>
+        <td>{{department.email}}</td>
+    </tr>
+    </tbody>
+</table>
+{% if (current_user.is_authenticated and current_user == department.user) or current_user.id == 1 %}
+<div style="margin-left: 430px">
+    <a href="/department/{{ department.id }}" class="btn btn-warning">
+        Изменить
+    </a>
+    <a href="/department_delete/{{ department.id }}" class="btn btn-danger">
+        Удалить
+    </a>
+</div>
+{% endif %}
+{% endfor %}
+
+{% endblock %}

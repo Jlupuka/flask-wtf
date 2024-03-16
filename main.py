@@ -8,10 +8,10 @@ from flask import Flask, render_template, request, redirect, make_response, sess
 
 from werkzeug import Response
 from werkzeug.utils import secure_filename
-from wtforms.fields import SubmitField
 
 from data import db_session
-from data.models.models import Jobs, User
+from data.models.models import Jobs, User, Department
+from forms.departmentForm import DepartmentForm
 from forms.jobForm import JobForm
 from forms.loginform import LoginForm
 from models.models import FlaskData
@@ -210,9 +210,12 @@ def update_job(id: int) -> str | Response:
     form = JobForm()
     if request.method == "GET":
         db_sess = db_session.create_session()
-        job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id,
-                                                     Jobs.team_leader == current_user.id
-                                                     ).first()
+        if current_user.id != 1:
+            job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id,
+                                                         Jobs.team_leader == current_user.id
+                                                         ).first()
+        else:
+            job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id).first()
         if job:
             form.teamleader.data = job.team_leader
             form.job.data = job.job
@@ -227,9 +230,12 @@ def update_job(id: int) -> str | Response:
             return render_template('add_job.html', title='Обновление работы',
                                    form=form,
                                    message=f"Team Leader'а с такими ID ({form.teamleader.data}) - нет")
-        job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id,
-                                                     Jobs.team_leader == current_user.id
-                                                     ).first()
+        if current_user.id != 1:
+            job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id,
+                                                         Jobs.team_leader == current_user.id
+                                                         ).first()
+        else:
+            job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id).first()
         if job:
             job.job = form.job.data
             job.team_leader = form.teamleader.data
@@ -247,15 +253,118 @@ def update_job(id: int) -> str | Response:
 @login_required
 def job_delete(id: int) -> Response:
     db_sess = db_session.create_session()
-    job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id,
-                                                 Jobs.team_leader == current_user.id
-                                                 ).first()
+    if current_user.id != 1:
+        job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id,
+                                                     Jobs.team_leader == current_user.id
+                                                     ).first()
+    else:
+        job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id).first()
     if job:
         db_sess.delete(job)
         db_sess.commit()
     else:
         abort(404)
     return redirect('/')
+
+
+@app.route('/department')
+@login_required
+def department() -> str:
+    return render_template('department.html', title='Департамент',
+                           department_data=session_db.query(Department).all())
+
+
+@app.route('/add_department', methods=['GET', 'POST'])
+@login_required
+def add_department() -> str | Response:
+    form = DepartmentForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if db_sess.query(Department).filter(Department.title == form.title.data).first():
+            return render_template('add_department.html', title='Добавление департамента',
+                                   form=form,
+                                   message="Такие данные уже есть")
+        if not db_sess.query(User).filter(User.id == form.chief.data).first():
+            return render_template('add_department.html', title='Добавление департамента',
+                                   form=form,
+                                   message=f"Team Leader'а с такими ID ({form.chief.data}) - нет")
+        department_obj = Department()
+        department_obj.title = form.title.data
+        department_obj.chief = form.chief.data
+        department_obj.members = form.members.data
+        department_obj.email = form.email.data
+        current_user.department = department_obj
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/department')
+    return render_template('add_department.html', title='Добавление департамента', form=form)
+
+
+@app.route('/department/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update_department(id: int) -> str | Response:
+    form = DepartmentForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        if current_user.id != 1:
+            department_obj: Type[Department] | None = (db_sess.query(Department)
+                                                       .filter(Department.id == id,
+                                                               Department.chief == current_user.id
+                                                               ).first())
+        else:
+            department_obj: Type[Department] | None = (db_sess.query(Department)
+                                                       .filter(Department.id == id).first())
+        if department_obj:
+            form.title.data = department_obj.title
+            form.members.data = department_obj.members
+            form.members.data = department_obj.members
+            form.email.data = department_obj.email
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if not db_sess.query(User).filter(User.id == form.chief.data).first():
+            return render_template('add_department.html', title='Обновление Департамент',
+                                   form=form,
+                                   message=f"Team Leader'а с такими ID ({form.chief.data}) - нет")
+        if current_user.id != 1:
+            department_obj: Type[Department] | None = (db_sess.query(Department)
+                                                       .filter(Department.id == id,
+                                                               Department.chief == current_user.id
+                                                               ).first())
+        else:
+            department_obj: Type[Department] | None = (db_sess.query(Department)
+                                                       .filter(Department.id == id).first())
+        if department_obj:
+            department_obj.title = form.title.data
+            department_obj.members = form.members.data
+            department_obj.members = form.members.data
+            department_obj.email = form.email.data
+            db_sess.commit()
+            return redirect('/department')
+        else:
+            abort(404)
+    return render_template('add_department.html', title='Обновление Департамента', form=form)
+
+
+@app.route('/department_delete/<int:id>')
+@login_required
+def department_delete(id: int) -> Response:
+    db_sess = db_session.create_session()
+    if current_user.id != 1:
+        department_obj: Type[Department] | None = (db_sess.query(Department)
+                                                   .filter(Department.id == id,
+                                                           Department.chief == current_user.id
+                                                           ).first())
+    else:
+        department_obj: Type[Department] | None = (db_sess.query(Department)
+                                                   .filter(Department.id == id).first())
+    if department_obj:
+        db_sess.delete(department_obj)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/department')
 
 
 @app.route("/cookie_test")
