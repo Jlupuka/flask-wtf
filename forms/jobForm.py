@@ -6,6 +6,7 @@ from wtforms.validators import DataRequired, regexp
 
 class JobForm(FlaskForm):
     teamleader = IntegerField('ID Team Leader', validators=[DataRequired()])
+    id_category = IntegerField('ID Category', validators=[DataRequired()])
     job = StringField('Наименование работы', validators=[DataRequired()])
     work_size = IntegerField('Дедлайн', validators=[DataRequired()])
     collaborators = StringField('ID работника(-ов)', validators=[DataRequired(),

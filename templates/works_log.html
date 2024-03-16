@@ -3,7 +3,7 @@
 <h2 align="center">Works log</h2>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/worksLog.css') }}"/>
 {% set columns = ['Название работы', 'Фамилия и имя ответственного',
-'Дедлайн', 'Список ID команды', 'Выполнена'] %}
+'Дедлайн', 'Список ID команды', 'ID Категории', 'Выполнена'] %}
 <div style="margin-left: 430px">
     <a href="/addjob" class="btn btn-primary">Добавить</a>
 </div>
@@ -23,6 +23,7 @@
         <td>{{job.user.surname}} {{job.user.name}}</td>
         <td>{{job.work_size}}</td>
         <td>{{job.collaborators}}</td>
+        <td>{{job.category.id}}</td>
         <td>{% if job.is_finished %} is finished {% else %} is not finished {% endif %}</td>
     </tr>
     </tbody>

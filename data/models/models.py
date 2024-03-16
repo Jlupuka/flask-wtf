@@ -4,10 +4,17 @@ from typing import Optional
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Table, Integer, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from data.db_session import SqlAlchemyBase
+
+job_to_category = Table(
+    'job_to_category',
+    SqlAlchemyBase.metadata,
+    Column('job_id', Integer, ForeignKey('jobs.id')),
+    Column('category_id', Integer, ForeignKey('categories.id'))
+)
 
 
 class User(SqlAlchemyBase, UserMixin):
@@ -23,8 +30,9 @@ class User(SqlAlchemyBase, UserMixin):
     email: Mapped[Optional[str]] = mapped_column(unique=True)
     hashed_password: Mapped[Optional[str]]
     modified_date: Mapped[Optional[datetime.datetime]]
-    jobs: Mapped['Jobs'] = relationship(back_populates='user')
+    jobs: Mapped[list['Jobs']] = relationship(back_populates='user', uselist=True)
     department: Mapped['Department'] = relationship(back_populates='user')
+    categories: Mapped[list['Category']] = relationship(back_populates='user', uselist=True)
 
     def __repr__(self) -> str:
         return f'<Colonist> {self.id} {self.name} {self.surname}'
@@ -48,6 +56,9 @@ class Jobs(SqlAlchemyBase):
     end_date: Mapped[Optional[datetime.datetime]]
     is_finished: Mapped[Optional[bool]]
     user: Mapped['User'] = relationship(back_populates='jobs')
+    category: Mapped['Category'] = relationship(secondary=job_to_category,
+                                                back_populates='jobs',
+                                                overlaps='jobs')
 
 
 class Department(SqlAlchemyBase):
@@ -59,3 +70,15 @@ class Department(SqlAlchemyBase):
     members: Mapped[Optional[str]]
     email: Mapped[Optional[str]]
     user: Mapped['User'] = relationship(back_populates='department')
+
+
+class Category(SqlAlchemyBase):
+    __tablename__ = 'categories'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[Optional[str]]
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+
+    user: Mapped['User'] = relationship(back_populates="categories")
+    jobs: Mapped[list['Jobs']] = relationship(secondary=job_to_category,
+                                              back_populates='category')

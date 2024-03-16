@@ -10,7 +10,8 @@ from werkzeug import Response
 from werkzeug.utils import secure_filename
 
 from data import db_session
-from data.models.models import Jobs, User, Department
+from data.models.models import Jobs, User, Department, Category
+from forms.categoryForm import CategoryForm
 from forms.departmentForm import DepartmentForm
 from forms.jobForm import JobForm
 from forms.loginform import LoginForm
@@ -182,6 +183,7 @@ def add_job() -> str | Response:
     form = JobForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
+        category_obj = db_sess.query(Category).filter(Category.id == form.id_category.data).first()
         if db_sess.query(Jobs).filter(Jobs.job == form.job.data).first():
             return render_template('add_job.html', title='Добавление работы',
                                    form=form,
@@ -190,6 +192,10 @@ def add_job() -> str | Response:
             return render_template('add_job.html', title='Добавление работы',
                                    form=form,
                                    message=f"Team Leader'а с такими ID ({form.teamleader.data}) - нет")
+        if not category_obj:
+            return render_template('add_job.html', title='Обновление работы',
+                                   form=form,
+                                   message=f"Категории с таким ID ({form.teamleader.data}) - нет")
 
         job = Jobs()
         job.job = form.job.data
@@ -197,8 +203,9 @@ def add_job() -> str | Response:
         job.work_size = form.work_size.data
         job.collaborators = form.collaborators.data
         job.is_finished = form.is_job_finished.data
-        current_user.job.append(job)
-        db_sess.merge(current_user)
+        job.category = category_obj
+        # current_user.jobs.append(job)
+        db_sess.merge(job)
         db_sess.commit()
         return redirect('/')
     return render_template('add_job.html', title='Добавление работы', form=form)
@@ -222,14 +229,20 @@ def update_job(id: int) -> str | Response:
             form.work_size.data = job.work_size
             form.is_job_finished.data = job.is_finished
             form.collaborators.data = job.collaborators
+            form.id_category.data = job.category.id
         else:
             abort(404)
     if form.validate_on_submit():
         db_sess = db_session.create_session()
+        category_obj = db_sess.query(Category).filter(Category.id == form.id_category.data).first()
         if not db_sess.query(User).filter(User.id == form.teamleader.data).first():
             return render_template('add_job.html', title='Обновление работы',
                                    form=form,
                                    message=f"Team Leader'а с такими ID ({form.teamleader.data}) - нет")
+        if not category_obj:
+            return render_template('add_job.html', title='Обновление работы',
+                                   form=form,
+                                   message=f"Категории с таким ID ({form.teamleader.data}) - нет")
         if current_user.id != 1:
             job: Type[Jobs] = db_sess.query(Jobs).filter(Jobs.id == id,
                                                          Jobs.team_leader == current_user.id
@@ -242,6 +255,7 @@ def update_job(id: int) -> str | Response:
             job.work_size = form.work_size.data
             job.collaborators = form.collaborators.data
             job.is_finished = form.is_job_finished.data
+            job.category = category_obj
             db_sess.commit()
             return redirect('/')
         else:
@@ -365,6 +379,90 @@ def department_delete(id: int) -> Response:
     else:
         abort(404)
     return redirect('/department')
+
+
+@app.route('/category')
+@login_required
+def category() -> str:
+    return render_template('category.html', title='Категории',
+                           category_data=session_db.query(Category).all())
+
+
+@app.route('/add_category', methods=['GET', 'POST'])
+@login_required
+def add_category() -> str | Response:
+    form = CategoryForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if db_sess.query(Department).filter(Department.title == form.name.data).first():
+            return render_template('add_category.html', title='Добавление категории',
+                                   form=form,
+                                   message="Такие данные уже есть")
+        category_obj = Category()
+        category_obj.name = form.name.data
+        category_obj.user_id = category_obj.id
+        current_user.categories.append(category_obj)
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/category')
+    return render_template('add_category.html', title='Добавление категории', form=form)
+
+
+@app.route('/category/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update_category(id: int) -> str | Response:
+    form = CategoryForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        if current_user.id != 1:
+            category_obj: Type[Category] | None = (db_sess.query(Category)
+                                                   .filter(Category.id == id,
+                                                           Category.user_id == current_user.id
+                                                           ).first())
+        else:
+            category_obj: Type[Category] | None = (db_sess.query(Category)
+                                                   .filter(Category.id == id).first())
+        if category_obj:
+            form.name.data = category_obj.name
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if current_user.id != 1:
+            category_obj: Type[Category] | None = (db_sess.query(Category)
+                                                   .filter(Category.id == id,
+                                                           Category.user_id == current_user.id
+                                                           ).first())
+        else:
+            category_obj: Type[Category] | None = (db_sess.query(Category)
+                                                   .filter(Category.id == id).first())
+        if category_obj:
+            category_obj.name = form.name.data
+            db_sess.commit()
+            return redirect('/category')
+        else:
+            abort(404)
+    return render_template('add_category.html', title='Обновление Категории', form=form)
+
+
+@app.route('/category_delete/<int:id>')
+@login_required
+def category_delete(id: int) -> Response:
+    db_sess = db_session.create_session()
+    if current_user.id != 1:
+        category_obj: Type[Category] | None = (db_sess.query(Category)
+                                               .filter(Category.id == id,
+                                                       Category.user_id == current_user.id
+                                                       ).first())
+    else:
+        category_obj: Type[Category] | None = (db_sess.query(Category)
+                                               .filter(Category.id == id).first())
+    if category_obj:
+        db_sess.delete(category_obj)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/category')
 
 
 @app.route("/cookie_test")

@@ -14,6 +14,15 @@
             {% endfor %}
         </p>
         <p>
+            {{ form.id_category.label }}<br>
+            {{ form.id_category(class="form-control") }}<br>
+            {% for error in form.id_category.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
             {{ form.job.label }}<br>
             {{ form.job(class="form-control") }}<br>
             {% for job in form.job.errors %}

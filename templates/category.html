@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 align="center">List of Categories</h2>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/worksLog.css') }}"/>
+{% set columns = ['ID Категории', 'Наименование'] %}
+<div style="margin-left: 430px">
+    <a href="/" class="btn btn-danger"><strong>Back job</strong></a>
+    <a href="/add_category" class="btn btn-primary">Add category</a>
+</div>
+{% for category in category_data %}
+<p align="center">| <i>Action #{{loop.index}} </i>|</p>
+<table class="table table-bordered my-table">
+    <thead>
+    <tr>
+        {% for column in columns %}
+        <th>{{column}}</th>
+        {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>{{category.id}}</td>
+        <td>{{category.name}}</td>
+    </tr>
+    </tbody>
+</table>
+{% if (current_user.is_authenticated and current_user == category.user) or current_user.id == 1 %}
+<div style="margin-left: 430px">
+    <a href="/category/{{ category.id }}" class="btn btn-warning">
+        Изменить
+    </a>
+    <a href="/category_delete/{{ category.id }}" class="btn btn-danger">
+        Удалить
+    </a>
+</div>
+{% endif %}
+{% endfor %}
+
+{% endblock %}
