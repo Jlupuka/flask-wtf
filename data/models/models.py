@@ -2,6 +2,7 @@ import datetime
 from typing import Optional
 
 from flask_login import UserMixin
+from sqlalchemy_serializer import SerializerMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from sqlalchemy import ForeignKey, Table, Integer, Column
@@ -17,7 +18,7 @@ job_to_category = Table(
 )
 
 
-class User(SqlAlchemyBase, UserMixin):
+class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'users'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -30,6 +31,7 @@ class User(SqlAlchemyBase, UserMixin):
     email: Mapped[Optional[str]] = mapped_column(unique=True)
     hashed_password: Mapped[Optional[str]]
     modified_date: Mapped[Optional[datetime.datetime]]
+
     jobs: Mapped[list['Jobs']] = relationship(back_populates='user', uselist=True)
     department: Mapped['Department'] = relationship(back_populates='user')
     categories: Mapped[list['Category']] = relationship(back_populates='user', uselist=True)
@@ -44,7 +46,7 @@ class User(SqlAlchemyBase, UserMixin):
         return check_password_hash(self.hashed_password, password)
 
 
-class Jobs(SqlAlchemyBase):
+class Jobs(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'jobs'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -55,13 +57,14 @@ class Jobs(SqlAlchemyBase):
     start_date: Mapped[Optional[datetime.datetime]]
     end_date: Mapped[Optional[datetime.datetime]]
     is_finished: Mapped[Optional[bool]]
+
     user: Mapped['User'] = relationship(back_populates='jobs')
     category: Mapped['Category'] = relationship(secondary=job_to_category,
                                                 back_populates='jobs',
                                                 overlaps='jobs')
 
 
-class Department(SqlAlchemyBase):
+class Department(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'departments'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -69,10 +72,11 @@ class Department(SqlAlchemyBase):
     chief: Mapped[Optional[int]] = mapped_column(ForeignKey('users.id'))
     members: Mapped[Optional[str]]
     email: Mapped[Optional[str]]
+
     user: Mapped['User'] = relationship(back_populates='department')
 
 
-class Category(SqlAlchemyBase):
+class Category(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'categories'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

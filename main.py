@@ -3,12 +3,15 @@ import json
 import os
 from typing import Type
 
+import requests
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from flask import Flask, render_template, request, redirect, make_response, session, abort
+from flask import Flask, render_template, request, redirect, make_response, session, abort, jsonify
 
 from werkzeug import Response
 from werkzeug.utils import secure_filename
 
+import jobs_api
+import users_api
 from data import db_session
 from data.models.models import Jobs, User, Department, Category
 from forms.categoryForm import CategoryForm
@@ -17,6 +20,7 @@ from forms.jobForm import JobForm
 from forms.loginform import LoginForm
 from models.models import FlaskData
 from forms.regform import RegisterForm
+from service.service import YandexMapAPI
 from services.service import Service
 
 app = Flask(__name__)
@@ -43,6 +47,16 @@ def index() -> str:
         return render_template('works_log.html', title=title,
                                jobs_data=session_db.query(Jobs).all())
     return render_template('base.html', title=title)
+
+
+@app.errorhandler(404)
+def not_found(_):
+    return make_response(jsonify({'error': 'Not found'}), 404)
+
+
+@app.errorhandler(400)
+def bad_request(_):
+    return make_response(jsonify({'error': 'Bad Request'}), 400)
 
 
 @app.route('/logout')
@@ -104,7 +118,7 @@ def login():
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.email == form.email.data).first()
-        if user and user.check_password(form.password.data):
+        if user and user.check_password(password=form.password.data):
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
         return render_template('login.html',
@@ -170,6 +184,7 @@ def registration() -> Response | str:
         user.position = form.position.data
         user.speciality = form.speciality.data
         user.address = form.address.data
+        user.modified_date = datetime.datetime.now(datetime.UTC)
         user.set_password(form.password.data)
         db_sess.add(user)
         db_sess.commit()
@@ -465,6 +480,22 @@ def category_delete(id: int) -> Response:
     return redirect('/category')
 
 
+@app.route('/user_show/<int:user_id>')
+def show_user(user_id: int) -> str:
+    api_url = 'http://127.0.0.1:8080/api/users'
+    user_data = requests.get(url=api_url + f'/{user_id}').json()['user']
+    if user_data.get('error') is not None:
+        return render_template('show_user.html',
+                               errorMessage=f'Not found user ({user_id})')
+    link_photo: dict | str = YandexMapAPI().link_photo_city(cityName=user_data['address'])
+    if isinstance(link_photo, type(dict)):
+        return render_template('show_user.html',
+                               errorMessage=f'Not found place ({user_data['address']})')
+    return render_template('show_user.html', name=user_data['name'],
+                           surname=user_data['surname'], cityPhotoLink=link_photo,
+                           city=user_data['address'])
+
+
 @app.route("/cookie_test")
 def cookie_test():
     visits_count = int(request.cookies.get("visits_count", 0))
@@ -496,4 +527,6 @@ def allowed_file(filename: str) -> bool:
 if __name__ == '__main__':
     db_session.global_init('db/workers.sqlite')
     session_db = db_session.create_session()
+    app.register_blueprint(jobs_api.blueprint)
+    app.register_blueprint(users_api.blueprint)
     app.run(port=8080, host='127.0.0.1')
