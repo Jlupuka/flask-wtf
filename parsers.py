@@ -21,7 +21,8 @@ class Parsers:
         parser = reqparse.RequestParser()
         parser.add_argument('job', required=required)
         parser.add_argument('team_leader', required=required, type=int)
+        parser.add_argument('id_category', required=required, type=int)
         parser.add_argument('work_size', required=required, type=int)
         parser.add_argument('collaborators', required=required)
-        parser.add_argument('is_finished', required=required, type=bool)
+        parser.add_argument('is_finished', required=False, type=bool, default=False)
         return parser

@@ -13,6 +13,7 @@ from werkzeug import Response
 from werkzeug.utils import secure_filename
 
 import jobs_api
+import jobs_resource
 import users_api
 import users_resource
 from data import db_session
@@ -536,5 +537,7 @@ if __name__ == '__main__':
     app.register_blueprint(users_api.blueprint)
     api.add_resource(users_resource.UsersListResource, '/api/v2/users')
     api.add_resource(users_resource.UsersResource, '/api/v2/users/<int:user_id>')
+    api.add_resource(jobs_resource.JobsListResource, '/api/v2/jobs')
+    api.add_resource(jobs_resource.JobsResource, '/api/v2/jobs/<int:job_id>')
     app.wsgi_app = Middleware(app.wsgi_app)
     app.run(port=8080, host='127.0.0.1')

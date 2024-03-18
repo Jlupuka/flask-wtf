@@ -1,3 +1,4 @@
+import datetime
 import pprint
 
 import requests
@@ -46,14 +47,26 @@ import requests
 
 base_url_v2 = 'http://127.0.0.1:8080/api/v2/'
 
-print(requests.get(base_url_v2 + 'users').json())
-print(requests.get(base_url_v2 + 'users/1').json())
-print(requests.get(base_url_v2 + 'users/9999').json())  # error -- not found
-print(requests.put(base_url_v2 + 'users/2', json={'surname': 'Usacheva'}).json())
-print(requests.put(base_url_v2 + 'users/2', json={'fsafsafasfas': 'Usacheva'}).json())  # ничего не поменяется
-# print(requests.post(base_url_v2 + 'users', json={'surname': 'Antonion', 'name': 'Anton',
-#                                                  'age': 34, 'position': 'Middle', 'speciality': 'ML Software',
-#                                                  'address': 'Сан-Франциско', 'email': 'ekb@ya.ru',
-#                                                  'password': '123'}).json())  # okay!
-print(requests.get(base_url_v2 + 'users').json())
-print(requests.delete(base_url_v2 + 'users/fasasfx').json())  # {'message': 'User (fasasfx) not found'}
+# print(requests.get(base_url_v2 + 'users').json())
+# print(requests.get(base_url_v2 + 'users/1').json())
+# print(requests.get(base_url_v2 + 'users/9999').json())  # error -- not found
+# print(requests.put(base_url_v2 + 'users/2', json={'surname': 'Usacheva'}).json())
+# print(requests.put(base_url_v2 + 'users/2', json={'fsafsafasfas': 'Usacheva'}).json())  # ничего не поменяется
+# # print(requests.post(base_url_v2 + 'users', json={'surname': 'Antonion', 'name': 'Anton',
+# #                                                  'age': 34, 'position': 'Middle', 'speciality': 'ML Software',
+# #                                                  'address': 'Сан-Франциско', 'email': 'ekb@ya.ru',
+# #                                                  'password': '123'}).json())  # okay!
+# print(requests.get(base_url_v2 + 'users').json())
+# print(requests.delete(base_url_v2 + 'users/fasasfx').json())  # {'message': 'User (fasasfx) not found'}
+
+
+print(requests.get(base_url_v2 + 'jobs').json())
+print(requests.get(base_url_v2 + 'jobs/7').json())
+print(requests.get(base_url_v2 + 'jobs/9999').json())  # error -- not found
+print(requests.put(base_url_v2 + 'jobs/8', json={'job': 'Developer'}).json())
+print(requests.put(base_url_v2 + 'jobs/8', json={'fsafsafasfas': 'Oooooo'}).json())  # ничего не поменяется
+print(requests.post(base_url_v2 + 'jobs', json={'team_leader': 3, 'job': 'Developer',
+                                                 'work_size': 34, 'collaborators': '1, 2, 3',
+                                                 'id_category': 3}).json())  # okay!
+print(requests.get(base_url_v2 + 'jobs').json())
+print(requests.delete(base_url_v2 + 'jobs/fasasfx').json())  # {'message': 'Job (fasasfx) not found'}
