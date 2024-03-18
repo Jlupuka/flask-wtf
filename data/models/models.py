@@ -5,7 +5,7 @@ from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from sqlalchemy import ForeignKey, Table, Integer, Column
+from sqlalchemy import ForeignKey, Table, Integer, Column, UniqueConstraint, event
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from data.db_session import SqlAlchemyBase
@@ -14,7 +14,8 @@ job_to_category = Table(
     'job_to_category',
     SqlAlchemyBase.metadata,
     Column('job_id', Integer, ForeignKey('jobs.id')),
-    Column('category_id', Integer, ForeignKey('categories.id'))
+    Column('category_id', Integer, ForeignKey('categories.id')),
+    UniqueConstraint('job_id', 'category_id', name='unique_job_to_category')
 )
 
 
@@ -32,9 +33,10 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     hashed_password: Mapped[Optional[str]]
     modified_date: Mapped[Optional[datetime.datetime]]
 
-    jobs: Mapped[list['Jobs']] = relationship(back_populates='user', uselist=True)
-    department: Mapped['Department'] = relationship(back_populates='user')
-    categories: Mapped[list['Category']] = relationship(back_populates='user', uselist=True)
+    jobs: Mapped[list['Jobs']] = relationship(back_populates='user', uselist=True, cascade='all')
+    department: Mapped['Department'] = relationship(back_populates='user', cascade='all, delete-orphan')
+    categories: Mapped[list['Category']] = relationship(back_populates='user', uselist=True,
+                                                        cascade='all, delete-orphan')
 
     def __repr__(self) -> str:
         return f'<Colonist> {self.id} {self.name} {self.surname}'
@@ -81,8 +83,8 @@ class Category(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[Optional[str]]
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    user_id: Mapped[Optional[int]] = mapped_column(ForeignKey('users.id'))
 
-    user: Mapped['User'] = relationship(back_populates="categories")
+    user: Mapped['User'] = relationship(back_populates="categories", cascade='all, delete-orphan', single_parent=True)
     jobs: Mapped[list['Jobs']] = relationship(secondary=job_to_category,
                                               back_populates='category')

@@ -5,25 +5,30 @@ from typing import Type
 
 import requests
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from flask import Flask, render_template, request, redirect, make_response, session, abort, jsonify
+from flask import Flask, render_template, request, redirect, make_response, session, jsonify
+
+from flask_restful import abort, Api
 
 from werkzeug import Response
 from werkzeug.utils import secure_filename
 
 import jobs_api
 import users_api
+import users_resource
 from data import db_session
 from data.models.models import Jobs, User, Department, Category
 from forms.categoryForm import CategoryForm
 from forms.departmentForm import DepartmentForm
 from forms.jobForm import JobForm
 from forms.loginform import LoginForm
+from middleware import Middleware
 from models.models import FlaskData
 from forms.regform import RegisterForm
 from service.service import YandexMapAPI
 from services.service import Service
 
 app = Flask(__name__)
+api = Api(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -35,7 +40,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
 @login_manager.user_loader
 def load_user(user_id: int) -> Type[User]:
     db_sess = db_session.create_session()
-    user = db_sess.query(User).filter(User.id == user_id).one()
+    user = db_sess.query(User).filter(User.id == user_id).first()
     return user
 
 
@@ -483,17 +488,17 @@ def category_delete(id: int) -> Response:
 @app.route('/user_show/<int:user_id>')
 def show_user(user_id: int) -> str:
     api_url = 'http://127.0.0.1:8080/api/users'
-    user_data = requests.get(url=api_url + f'/{user_id}').json()['user']
+    user_data = requests.get(url=api_url + f'/{user_id}').json()
     if user_data.get('error') is not None:
         return render_template('show_user.html',
                                errorMessage=f'Not found user ({user_id})')
-    link_photo: dict | str = YandexMapAPI().link_photo_city(cityName=user_data['address'])
+    link_photo: dict | str = YandexMapAPI().link_photo_city(cityName=user_data['user']['address'])
     if isinstance(link_photo, type(dict)):
         return render_template('show_user.html',
-                               errorMessage=f'Not found place ({user_data['address']})')
-    return render_template('show_user.html', name=user_data['name'],
-                           surname=user_data['surname'], cityPhotoLink=link_photo,
-                           city=user_data['address'])
+                               errorMessage=f'Not found place ({user_data['user']['address']})')
+    return render_template('show_user.html', name=user_data['user']['name'],
+                           surname=user_data['user']['surname'], cityPhotoLink=link_photo,
+                           city=user_data['user']['address'])
 
 
 @app.route("/cookie_test")
@@ -529,4 +534,7 @@ if __name__ == '__main__':
     session_db = db_session.create_session()
     app.register_blueprint(jobs_api.blueprint)
     app.register_blueprint(users_api.blueprint)
+    api.add_resource(users_resource.UsersListResource, '/api/v2/users')
+    api.add_resource(users_resource.UsersResource, '/api/v2/users/<int:user_id>')
+    app.wsgi_app = Middleware(app.wsgi_app)
     app.run(port=8080, host='127.0.0.1')

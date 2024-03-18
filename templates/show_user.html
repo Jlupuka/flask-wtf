@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 {% if errorMessage %}
-<div class="alert alert-error">
-    errorMessage
+<div class="alert alert-danger" role="alert">
+    {{ errorMessage }}
 </div>
 {% else %}
-<p class="user-information">
+<div class="user-information">
     <h1 align="center">Nostalgia</h1>
     <h2 align="center">{{ name }} {{ surname }}</h2>
     <h3 align="center">Hometown {{ city }}</h3>

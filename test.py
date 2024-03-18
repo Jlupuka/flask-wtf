@@ -2,7 +2,7 @@ import pprint
 
 import requests
 
-base_url = 'http://127.0.0.1:8080/api/jobs'
+# base_url = 'http://127.0.0.1:8080/api/jobs'
 
 # print(requests.get(url=base_url))
 # print(requests.get(url=base_url + '/8'))
@@ -33,13 +33,27 @@ base_url = 'http://127.0.0.1:8080/api/jobs'
 # pprint.pprint(requests.get(url=base_url).json())
 
 
-pprint.pprint(requests.get(url=base_url).json())
-print(requests.put(url=base_url + '/7', json={'work_size': 12, 'is_finished': True}).json())  # Корректный
-pprint.pprint(requests.get(url=base_url).json())
-print(requests.put(url=base_url + '/7', json={'wze': 23}).json())  # Некорректный
-pprint.pprint(requests.get(url=base_url).json())
-print(requests.put(url=base_url + '/7', json={}).json())  # Некорректный
-pprint.pprint(requests.get(url=base_url).json())
-print(requests.put(url=base_url + '/fsafsa', json={'work_size': 23}).json())  # Некорректный
-pprint.pprint(requests.get(url=base_url).json())
+# pprint.pprint(requests.get(url=base_url).json())
+# print(requests.put(url=base_url + '/7', json={'work_size': 12, 'is_finished': True}).json())  # Корректный
+# pprint.pprint(requests.get(url=base_url).json())
+# print(requests.put(url=base_url + '/7', json={'wze': 23}).json())  # Некорректный
+# pprint.pprint(requests.get(url=base_url).json())
+# print(requests.put(url=base_url + '/7', json={}).json())  # Некорректный
+# pprint.pprint(requests.get(url=base_url).json())
+# print(requests.put(url=base_url + '/fsafsa', json={'work_size': 23}).json())  # Некорректный
+# pprint.pprint(requests.get(url=base_url).json())
 
+
+base_url_v2 = 'http://127.0.0.1:8080/api/v2/'
+
+print(requests.get(base_url_v2 + 'users').json())
+print(requests.get(base_url_v2 + 'users/1').json())
+print(requests.get(base_url_v2 + 'users/9999').json())  # error -- not found
+print(requests.put(base_url_v2 + 'users/2', json={'surname': 'Usacheva'}).json())
+print(requests.put(base_url_v2 + 'users/2', json={'fsafsafasfas': 'Usacheva'}).json())  # ничего не поменяется
+# print(requests.post(base_url_v2 + 'users', json={'surname': 'Antonion', 'name': 'Anton',
+#                                                  'age': 34, 'position': 'Middle', 'speciality': 'ML Software',
+#                                                  'address': 'Сан-Франциско', 'email': 'ekb@ya.ru',
+#                                                  'password': '123'}).json())  # okay!
+print(requests.get(base_url_v2 + 'users').json())
+print(requests.delete(base_url_v2 + 'users/fasasfx').json())  # {'message': 'User (fasasfx) not found'}
